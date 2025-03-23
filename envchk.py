@@ -1,5 +1,6 @@
 from os import getenv
 from sys import exit
+import argparse
 
 
 def chk(env_var:str, env_var_descr:str) -> bool:
@@ -12,19 +13,25 @@ def chk(env_var:str, env_var_descr:str) -> bool:
     print(f"{env_var} ({env_var_descr}) -> {env_val}")
     return retv
 
-def env_var_chk() -> bool:
+def env_var_chk(runtime_only:bool) -> bool:
     missing:int = 0
     missing_env = []
     required_env_vars = {
         "LD_LIBRARY_PATH": "path for shared libraries",
         "HOME_TMP_DIR": "local temp dir some library or app may use",
         "HOME_DB_PATH": "DB Path a library or app uses an embedded DB like sqlite",
+        "TANUPROJ_HOME": "Directory where tanuapp/lib projects are located",
         "TANUAPP_DIR": "Directory where Tanu Apps are installed",
         "TANULIB_DIR": "Directory where tanu libraries are located",
         "TANULIB_CONF_DIR": "Directory where Tanulib configurations are stored",
         "TANULIB_CPP_CODE_DIR": "Directory where tanulib cpp lib's code is located",
         "NEKOKAN_CODE_DIR": "Direcotory where nekokan code is located",
     }
+    if runtime_only:
+        del required_env_vars["TANULIB_CPP_CODE_DIR"]
+        del required_env_vars["TANUPROJ_HOME"]
+        del required_env_vars["NEKOKAN_CODE_DIR"]
+
     for (env_var_name, env_var_descr) in required_env_vars.items():
         found = chk(env_var_name, env_var_descr)
         if not found:
@@ -51,7 +58,7 @@ def env_var_chk() -> bool:
 def ld_lib_path_chk() -> bool:
     ld_lib_path:str|None = getenv("LD_LIBRARY_PATH")
     tanulib_dir:str|None = getenv("TANULIB_DIR")
-    print("checking LD_LIBRARY_PATH contains TANULIB_DIR. Otherwise cpp binaries are likely to fail")
+    print("checking LD_LIBRARY_PATH contains TANULIB_DIR... Otherwise cpp binaries are likely to fail")
     if ld_lib_path is not None and tanulib_dir is not None:
         libpath_chk_rez = ld_lib_path.find(tanulib_dir) != -1
         print(f"LD_LIBRARY_PATH is {ld_lib_path}. TANULIB_DIR is {tanulib_dir} - {'GOOD' if libpath_chk_rez else 'NG!'}")
@@ -63,8 +70,36 @@ def ld_lib_path_chk() -> bool:
             print("TANULIB_DIR is missing")
         return False
 
+def proj_and_nekokan_lib_path_chk() -> bool:
+    tlib_cpp_path:str|None = getenv("TANULIB_CPP_CODE_DIR")
+    nekokan_path:str|None = getenv("NEKOKAN_CODE_DIR")
+    tanuproj_home_path:str|None = getenv("TANUPROJ_HOME")
+    print("checking TANULIB_CPP_CODE_DIR and NEKOKAN_CODE_DIR contains TANUPROJ_HOME for integrity ... ");
+    if tlib_cpp_path is not None and nekokan_path is not None and tanuproj_home_path is not None:
+        chk_rez = tlib_cpp_path.find(tanuproj_home_path) != -1
+        if chk_rez:
+            chk_rez = nekokan_path.find(tanuproj_home_path) != -1
+        print(f"TANULIB_CPP_CODE_DIR is {tlib_cpp_path}, NEKOKAN_CODE_DIR is {nekokan_path} and TANUPROJ_HOME is {tanuproj_home_path} - {'GOOD' if chk_rez else 'NG!'}")
+        return chk_rez
+    else:
+        if tlib_cpp_path is None:
+            print("TANULIB_CPP_CODE_DIR missing")
+        if nekokan_path is None:
+            print("NEKOKAN_CODE_DIR is missing")
+        if tanuproj_home_path is None:
+            print("TANUPROJ_HOME is missing")
+        return False
+
 if __name__ == "__main__":
-    all_good = all([env_var_chk(), ld_lib_path_chk()])
+
+    parser = argparse.ArgumentParser(prog = "envchk.py")
+    parser.add_argument("-r", "--runtime_only", action = "store_true", help="no check for code-dev-related env vars", default = False)
+    cargs = parser.parse_args()
+    
+    if cargs.runtime_only:
+        all_good = all([env_var_chk(cargs.runtime_only), ld_lib_path_chk()])
+    else:
+        all_good = all([env_var_chk(cargs.runtime_only), ld_lib_path_chk(), proj_and_nekokan_lib_path_chk()])
     if all_good:
         print("ALL SET!")
     else:
