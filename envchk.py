@@ -105,3 +105,4 @@ if __name__ == "__main__":
     else:
         print("Env set up is not complete.")
     exit(0 if all_good else 1)
+

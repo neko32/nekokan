@@ -98,3 +98,4 @@ int main() {
     fout.close();
     cout << "all done." << endl;
 }
+
