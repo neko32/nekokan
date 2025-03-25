@@ -62,9 +62,9 @@ int main() {
     ss << "# NEKOKAN_CONF_DIR" << endl;
     ss << "export NEKOKAN_CONF_DIR=" << (home_path / "nekokan" / "conf").string() << endl;
 
-    // LIBNEKOKAN_DIR
-    ss << "# LIBNEKOKAN_DIR" << endl;
-    ss << "export LIBNEKOKAN_DIR=" << libnekokan_path.string() << endl;
+    // NEKOKAN_LIB_DIR
+    ss << "# NEKOKAN_LIB_DIR" << endl;
+    ss << "export NEKOKAN_LIB_DIR=" << libnekokan_path.string() << endl;
 
     // TANULIB_CPP_CODE_DIR
     ss << "# TANULIB_CPP_CODE_DIR" << endl;
@@ -78,6 +78,17 @@ int main() {
     ss << "# Prepend LIBNEKOKAN_DIR to LD_LIBRARY_PATH" << endl;
     ss << "export LD_LIBRARY_PATH=" << libnekokan_path.string() << ":${LD_LIBRARY_PATH}" << endl;
 
+    // special command for LD_LIBRARY_PATH update
+    ss << "# special command to optimie LD_LIBRARY_PATH for nekokan" << endl;
+    ss << "alias setnkld=\"export LD_LIBRARY_PATH=" << libnekokan_path.string() << ":/usr/local/lib\"" << endl;
+
+
+    // shortcut to nekokan
+    ss << "# Shortcuts for nekokan" << endl;
+    ss << "alias gonklib=\"cd ${NEKOKAN_LIB_DIR}\"" << endl;
+    ss << "alias gonkbin=\"cd ${NEKOKAN_BIN_DIR}\"" << endl;
+    ss << "alias gonkconf=\"cd ${NEKOKAN_CONF_DIR}\"" << endl;
+    ss << "alias gonkproj=\"cd ${NEKOKAN_CODE_DIR}\"" << endl;
     cout << ss.str() << endl;
 
     // write the result to ~/.nekokan_include.bash
