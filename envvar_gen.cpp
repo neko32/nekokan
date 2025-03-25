@@ -107,6 +107,19 @@ int main() {
     }
     fout << ss.str() << endl;
     fout.close();
+
+    // generate and show a code snippet for .bashrc
+    string snippet = R"(
+if [ -e ~/.nekokan_include.bash ]; then
+  source ~/.nekokan_include.bash
+  echo "${LD_LIBRARY_PATH} will be updated with the one optimized for nekokan. Pls revert back if needed"
+  setnkld
+  echo "new LD_LIBRARY_PATH is ${LD_LIBRARY_PATH}"
+fi
+    )";
+    cout << "copy the below to your .bashrc or equiv:" << endl;
+    cout << snippet << endl;
+
     cout << "all done." << endl;
 }
 
