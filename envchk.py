@@ -1,5 +1,6 @@
-from os import getenv
+from os import getenv, system
 from sys import exit
+from subprocess import check_output
 import argparse
 
 
@@ -21,9 +22,9 @@ def env_var_chk(runtime_only:bool) -> bool:
         "HOME_TMP_DIR": "local temp dir some library or app may use",
         "HOME_DB_PATH": "DB Path a library or app uses an embedded DB like sqlite",
         "TANUPROJ_HOME": "Directory where tanuapp/lib projects are located",
-        "TANUAPP_DIR": "Directory where Tanu Apps are installed",
-        "TANULIB_DIR": "Directory where tanu libraries are located",
-        "TANULIB_CONF_DIR": "Directory where Tanulib configurations are stored",
+        "NEKOKAN_BIN_DIR": "Directory where Nekokan Apps are installed",
+        "NEKOKAN_LIB_DIR": "Directory where nekokan libraries are located",
+        "NEKOKAN_CONF_DIR": "Directory where nekokan configurations are stored",
         "TANULIB_CPP_CODE_DIR": "Directory where tanulib cpp lib's code is located",
         "NEKOKAN_CODE_DIR": "Direcotory where nekokan code is located",
     }
@@ -57,16 +58,16 @@ def env_var_chk(runtime_only:bool) -> bool:
 
 def ld_lib_path_chk() -> bool:
     ld_lib_path:str|None = getenv("LD_LIBRARY_PATH")
-    tanulib_dir:str|None = getenv("TANULIB_DIR")
-    print("checking LD_LIBRARY_PATH contains TANULIB_DIR... Otherwise cpp binaries are likely to fail")
-    if ld_lib_path is not None and tanulib_dir is not None:
-        libpath_chk_rez = ld_lib_path.find(tanulib_dir) != -1
-        print(f"LD_LIBRARY_PATH is {ld_lib_path}. TANULIB_DIR is {tanulib_dir} - {'GOOD' if libpath_chk_rez else 'NG!'}")
+    nekokan_lib_dir:str|None = getenv("NEKOKAN_LIB_DIR")
+    print("checking LD_LIBRARY_PATH contains NEKOKAN_LIB_DIR... Otherwise cpp binaries are likely to fail")
+    if ld_lib_path is not None and nekokan_lib_dir is not None:
+        libpath_chk_rez = ld_lib_path.find(nekokan_lib_dir) != -1
+        print(f"LD_LIBRARY_PATH is {ld_lib_path}. NEKOKAN_LIB_DIR is {nekokan_lib_dir} - {'GOOD' if libpath_chk_rez else 'NG!'}")
         return libpath_chk_rez
     else:
         if ld_lib_path is None:
             print("LD_LIBRARY_PATH is missing")
-        if tanulib_dir is None:
+        if nekokan_lib_dir is None:
             print("TANULIB_DIR is missing")
         return False
 
@@ -90,6 +91,31 @@ def proj_and_nekokan_lib_path_chk() -> bool:
             print("TANUPROJ_HOME is missing")
         return False
 
+def compiler_existance_check() -> bool:
+    print("checking g++ compiler existance and its version..")
+    try:
+        check_output(["which", "g++-13"])
+        print("found g++-13 or higher - GOOD")
+        return True
+    except:
+        pass
+
+    gpp = check_output(["which", "g++"])
+    if len(gpp) != 0:
+        try:
+            gpp_ver = check_output(["g++", "--version"], text=True)
+        except:
+            print("seems no g++ exists.")
+            return False
+        main_ver = int(gpp_ver.split("\n")[0].split(" ")[-1].split(".")[0])
+        print(f"g++ version is {main_ver}. This version number must be more than equal to 13.")
+        return main_ver >= 13
+
+    
+    print("cannot pass g++ compiler check test - NG")
+    return False 
+    
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog = "envchk.py")
@@ -99,7 +125,12 @@ if __name__ == "__main__":
     if cargs.runtime_only:
         all_good = all([env_var_chk(cargs.runtime_only), ld_lib_path_chk()])
     else:
-        all_good = all([env_var_chk(cargs.runtime_only), ld_lib_path_chk(), proj_and_nekokan_lib_path_chk()])
+        all_good = all([
+            env_var_chk(cargs.runtime_only), 
+            ld_lib_path_chk(), 
+            proj_and_nekokan_lib_path_chk(),
+            compiler_existance_check()
+        ])
     if all_good:
         print("ALL SET!")
     else:
