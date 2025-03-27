@@ -111,10 +111,50 @@ def compiler_existance_check() -> bool:
         print(f"g++ version is {main_ver}. This version number must be more than equal to 13.")
         return main_ver >= 13
 
-    
     print("cannot pass g++ compiler check test - NG")
     return False 
+
+def third_party_lib_install_check():
+    print("checking 3rd party library existance..")
+    third_parties = set([
+        "libcppunit",
+        "libcppunit-dev",
+        "libpqxx",
+        "libpqxx-dev",
+        "libcpprest-dev",
+        "libcpprest",
+    ])
+
+    found = set([])
+    missing = set([])
+
+    for third_party in third_parties:
+        installed_packages = list(filter(lambda x:x.startswith(third_party), check_output(["apt", "list", "--installed"], text=True).splitlines()))
+        for package in installed_packages:
+            if not package.startswith(third_party + "-dev"):
+                found.add(third_party)
+        
+    missing = third_parties.difference(found)
+    print("--- found libraries installed ---")
+    buf = ""
+    for found_pkg in found: 
+        buf += f"{found_pkg},"
+    if len(buf) == 0:
+        buf = "No dependent libraries have been installed!"
+    else:
+        buf = buf[:-1]
+    print(buf)
     
+    print("--- missing libraries ---")
+    buf = ""
+    for missing_pkg in missing: 
+        buf += f"{missing_pkg},"
+    if len(buf) == 0:
+        buf = "No missing packages - GOOD"
+    else:
+        buf = buf[:-1]
+    print(buf)
+    return len(missing) == 0
 
 if __name__ == "__main__":
 
@@ -123,13 +163,18 @@ if __name__ == "__main__":
     cargs = parser.parse_args()
     
     if cargs.runtime_only:
-        all_good = all([env_var_chk(cargs.runtime_only), ld_lib_path_chk()])
+        all_good = all([
+            env_var_chk(cargs.runtime_only), 
+            ld_lib_path_chk(),
+            third_party_lib_install_check()
+        ])
     else:
         all_good = all([
             env_var_chk(cargs.runtime_only), 
             ld_lib_path_chk(), 
             proj_and_nekokan_lib_path_chk(),
-            compiler_existance_check()
+            compiler_existance_check(),
+            third_party_lib_install_check()
         ])
     if all_good:
         print("ALL SET!")
