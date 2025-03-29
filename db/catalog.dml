@@ -1,0 +1,9 @@
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "nlohmann/json",
+    "JSON for Modern C++",
+    "Lightweight and fast JSON for Modern C++",
+    "https://github.com/nlohmann/json",
+    "https://github.com/nlohmann/json/blob/develop/single_include/nlohmann/json.hpp",
+    "header_only_library"
+);

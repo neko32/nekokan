@@ -123,6 +123,8 @@ def third_party_lib_install_check():
         "libpqxx-dev",
         "libcpprest-dev",
         "libcpprest",
+        "sqlite3",
+        "libsqlite3-dev"
     ])
 
     found = set([])
