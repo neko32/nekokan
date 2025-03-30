@@ -6,4 +6,4 @@ set -x
 if [ -e ./evgen ]; then
     rm ./evgen
 fi
-g++-13 -std=c++20 nkcall.cpp -o nkcall -lsqlite3
+g++-13 -std=c++20 nkcall.cpp -o nkcall -lsqlite3 -lcurl

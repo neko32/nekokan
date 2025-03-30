@@ -1,14 +1,105 @@
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <stdexcept>
 #include <algorithm>
 #include <sstream>
+#include <filesystem>
+#include <regex>
+#include <curl/curl.h>
 #include <sqlite3.h>
 
 using namespace std;
+
+namespace tanulib::net {
+
+    size_t rget_callback(void* ptr, size_t size, size_t nb, void* stream) {
+        ofstream* out = static_cast<ofstream*>(stream);
+        size_t total_size = size * nb;
+        out->write(static_cast<const char*>(ptr), total_size);
+        return total_size;
+    }
+
+    string rget_text(const string& url) {
+        CURL* curl;
+        CURLcode curl_code;
+        ofstream ofs {"/tmp/rget_tmp.tmp", ios::binary};
+
+        curl = curl_easy_init();
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rget_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ofs);
+
+        curl_code = curl_easy_perform(curl);
+        if(curl_code != CURLE_OK) {
+            throw runtime_error("rget by curl failed.");
+        }
+
+        curl_easy_cleanup(curl);
+        ofs.close();
+
+        ifstream ifs("/tmp/rget_tmp.tmp", ios::binary);
+        if(!ifs) {
+            throw runtime_error("opening tmp file failed");
+        }
+        vector<unsigned char> buf {istreambuf_iterator<char>(ifs), istreambuf_iterator<char>()};
+        ostringstream oss;
+        for(auto byte:buf) {
+            oss << static_cast<char>(byte);
+        }
+        ifs.close();
+        if(!filesystem::remove("/tmp/rget_tmp.tmp")) {
+            throw runtime_error("failed to remove /tmp/rget_tmp.tmp");
+        }
+        return oss.str();
+    }
+
+    class URLParser {
+    private:
+        string m_scheme;
+        string m_host;
+        int m_port;
+        string m_path;
+        string m_queries;
+        string m_fragments;
+        string m_raw_url;
+    public:
+        URLParser(const string& raw_url) {
+            m_raw_url = raw_url;
+            regex reg(R"(^(https?)://([^:/?#]+)(?::(\d+))?([^?#]*)(\?[^#]*)?(#.*)?)");
+            smatch match_rez;
+            if(regex_match(m_raw_url, match_rez, reg)) {
+                this->m_scheme = match_rez[1].str();
+                this->m_host = match_rez[2].str();
+                string port_s = match_rez[3].str();
+                this->m_port = port_s.empty() ? -1: stoi(match_rez[3].str());
+                this->m_path = match_rez[4].str();
+                this->m_queries = match_rez[5].str();
+                this->m_fragments = match_rez[6].str();
+            } else {
+                throw runtime_error("parsing " + raw_url + " failed.");
+            }
+        }
+
+        const string& scheme() const {return m_scheme;}
+        const string& host() const {return m_host;}
+        const int port() const{return m_port;}
+        const string& path() const{return m_path;}
+        const string& queries() const{return m_queries;}
+        const string& fragments() const{return m_fragments;}
+        const string path_last() const {
+            int pos = m_path.find_last_of('/');
+            if(pos == m_path.npos) {
+                return m_path;
+            } else {
+                return string{m_path.substr(pos + 1)};
+            }
+        }
+    };
+}
 
 namespace nekokan::installer {
 
@@ -98,6 +189,67 @@ namespace nekokan::installer {
         }
     };
 
+    class Installer {
+    protected:
+        string m_remote_location;
+        string m_install_dest;
+        LibType m_libtype;
+    public:
+        Installer(const string& remote_loc, const string& install_dest, LibType libtype): m_remote_location(remote_loc), m_libtype(libtype) {
+            char* lib_env_var = getenv("NEKOKAN_LIB_DIR");
+            if(lib_env_var == nullptr) throw runtime_error("NEKOKAN_LIB_DIR env variable must be set.");
+            string lib_env_s {lib_env_var};
+            filesystem::path lib_path {lib_env_s};
+            if(libtype == LibType::HEADER_ONLY_LIB) {
+                lib_path /= "include";
+            }
+            lib_path /= install_dest;
+            this->m_install_dest = lib_path.string();
+        }
+
+        virtual ~Installer(){}
+
+        virtual bool install() = 0;
+        bool already_installed() {
+            return filesystem::exists(this->m_install_dest);
+        }
+        const string& remote_location() {return m_remote_location;}
+        const string& install_dest() {return m_install_dest;}
+        LibType libtype() {return m_libtype;}
+    };
+
+    class HeaderOnlyInstaller:public Installer {
+    public:
+        HeaderOnlyInstaller(const string& remote_loc, const string& install_dest, LibType libtype): Installer(remote_loc, install_dest, libtype){}
+        bool install() override {
+
+            tanulib::net::URLParser urlparser {this->remote_location()};
+            string file_name = urlparser.path_last();
+            filesystem::path inst_path {this->m_install_dest};
+            inst_path /= file_name;
+
+            if(!filesystem::exists(inst_path.parent_path())) {
+                if(!filesystem::create_directories(inst_path.parent_path())) {
+                    throw runtime_error("creading directories (equiv to mkdir -p) for " + inst_path.parent_path().string() + " failed.");
+                };
+            }
+
+            cout << "fetching library from " << this->m_remote_location << " ... " << endl;
+            string fetched_data = tanulib::net::rget_text(this->m_remote_location);
+
+            cout << "installing fetched header file to " << inst_path.string() << " ... " << endl;
+            ofstream ofs {inst_path.string()};
+            if(!ofs.is_open()) {
+                throw runtime_error("failed to open " + inst_path.string());
+            }
+            ofs << fetched_data << endl;
+            ofs.close();
+            cout << "done." << endl;
+
+            return true;
+        }
+    };
+
     int get_catalog_from_db(void *param, int col_cnt, char** data, char** col_name) {
         const int id = atoi(data[0]);
         const string name = data[1];
@@ -175,12 +327,53 @@ int main(int argc, char** argv) {
     const nekokan::installer::CatalogItem& item = catalogs[name];
     cout << name << " found. " << endl;
     cout << item.to_str() << endl << endl;
-    
 
 #ifdef __NK_DEBUG__
     for(const auto& [k, cat]:catalogs) {
         cout << k << ":" << cat.to_str() << endl;
     }
 #endif
+
+    nekokan::installer::Installer* installer = nullptr;
+    bool already_exists = false;
+    int ret_code = 0;
+    switch(item.libtype()) {
+        case nekokan::installer::LibType::REGULAR_LIB:
+            // TODO
+            break;
+        case nekokan::installer::LibType::HEADER_ONLY_LIB:
+            installer = new nekokan::installer::HeaderOnlyInstaller(
+                item.code_location(),
+                item.name(),
+                item.libtype()
+            );
+            already_exists = installer->already_installed();
+            cout << installer->install_dest() << " has already the lib? " << boolalpha << already_exists << endl;
+            if(already_exists) {
+                cout << "library " << item.display_name() << " has already been installed to " << installer->install_dest() << endl;
+            } else {
+                try {
+                    if(!installer->install()) {
+                        cerr << "installer couldn't completed installation." << endl;
+                        ret_code = 1;
+                    };
+                } catch(const runtime_error& e) {
+                    cerr << e.what() << endl;
+                    ret_code = 1;
+                }
+            }
+            break;
+        default:
+            cout << "not supported libtype?" << endl;
+            ret_code = 2;
+            break;
+
+        exit(ret_code);
+    }
+
+
+    if(installer != nullptr) {
+        delete installer;
+    }
     
 }

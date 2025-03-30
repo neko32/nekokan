@@ -124,7 +124,8 @@ def third_party_lib_install_check():
         "libcpprest-dev",
         "libcpprest",
         "sqlite3",
-        "libsqlite3-dev"
+        "libsqlite3-dev",
+        "libcurl4-openssl-dev"
     ])
 
     found = set([])
