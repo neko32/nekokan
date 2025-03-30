@@ -55,6 +55,7 @@ namespace nekokan::installer {
         vector<int> m_dependencies; 
         int m_special_install_instruction_id;
     public:
+        explicit CatalogItem(){}
         explicit CatalogItem(
             int id, 
             const string& name,
@@ -105,10 +106,15 @@ namespace nekokan::installer {
         const string repo_url = data[4];
         const string code_location = data[5];
         const LibType libtype = from_str_to_libtype(data[6]);
-        // [TODO] parse deps
         const string deps = data[7] == nullptr ? "": data[7];
+        stringstream depss(deps);
+        vector<int> dep_ids{};
+        string t;
+        while(getline(depss, t, ',')) {
+            t.push_back(stoi(t));
+        }
         const int special_inst_id = data[8] == nullptr ? -1: atoi(data[8]);
-        ((vector<CatalogItem>*)param)->push_back(
+        ((unordered_map<string,CatalogItem>*)param)->insert({name, 
             CatalogItem {
                 id,
                 name,
@@ -117,14 +123,14 @@ namespace nekokan::installer {
                 repo_url,
                 code_location,
                 libtype,
-                {0, 1, 2},
+                dep_ids,
                 special_inst_id
             }
-        );
+        });
         return 0;
     }
 
-    void get_catalog_data(vector<CatalogItem>& catalog) {
+    void get_catalog_data(unordered_map<string, CatalogItem>& catalog) {
         sqlite3 *db = nullptr;
         char *err_msg = nullptr;
         int ret = sqlite3_open("db/catalog.sqlite3", &db);
@@ -146,14 +152,35 @@ int main(int argc, char** argv) {
         cout << "nkcall [app/lib name]" << endl;
         exit(1);
     }
-    const string name {argv[1]};
-    cout << name << endl;
 
-    vector<nekokan::installer::CatalogItem> catalogs;
+    const string name {argv[1]};
+
+    unordered_map<string, nekokan::installer::CatalogItem> catalogs;
     nekokan::installer::get_catalog_data(catalogs);
 
-    for(const auto& cat:catalogs) {
-        cout << cat.to_str() << endl;
+    if(name == "list") {
+        for(const auto& [key, item]:catalogs) {
+            cout << key << " -> " << item.to_str() << endl;
+        }
+        exit(0);
     }
+
+    cout << "searching " << name << " from Nekokan catalog.." << endl;
+
+    auto found = catalogs.find(name);
+    if(found == catalogs.end()) {
+        cout << name << " was not found in Nekokan catalog. exitting.." << endl;
+        exit(0);
+    }
+    const nekokan::installer::CatalogItem& item = catalogs[name];
+    cout << name << " found. " << endl;
+    cout << item.to_str() << endl << endl;
+    
+
+#ifdef __NK_DEBUG__
+    for(const auto& [k, cat]:catalogs) {
+        cout << k << ":" << cat.to_str() << endl;
+    }
+#endif
     
 }
