@@ -4,6 +4,6 @@ values (
     "JSON for Modern C++",
     "Lightweight and fast JSON for Modern C++",
     "https://github.com/nlohmann/json",
-    "https://github.com/nlohmann/json/blob/develop/single_include/nlohmann/json.hpp",
+    "https://github.com/nlohmann/json/blob/develop/single_include/nlohmann/json.hpp?raw=true",
     "header_only_library"
 );

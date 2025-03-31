@@ -56,7 +56,7 @@ int main() {
 
     // NEKOKAN_BIN_DIR
     ss << "# NEKOKAN_BIN_DIR" << endl;
-    ss << "export NEKOKAN_BIN_DIR=" << (home_path / "nekokan" / "bin").string() << endl;
+    ss << "export NEKOKAN_BIN_DIR=" << (opt_path / "nekokan" / "bin").string() << endl;
 
     // NEKOKAN_CONF_DIR
     ss << "# NEKOKAN_CONF_DIR" << endl;

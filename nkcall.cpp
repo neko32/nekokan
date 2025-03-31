@@ -30,6 +30,7 @@ namespace tanulib::net {
 
         curl = curl_easy_init();
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rget_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ofs);
 
@@ -51,9 +52,11 @@ namespace tanulib::net {
             oss << static_cast<char>(byte);
         }
         ifs.close();
+        /*
         if(!filesystem::remove("/tmp/rget_tmp.tmp")) {
             throw runtime_error("failed to remove /tmp/rget_tmp.tmp");
         }
+            */
         return oss.str();
     }
 
