@@ -7,3 +7,13 @@ values (
     "https://github.com/nlohmann/json/blob/develop/single_include/nlohmann/json.hpp?raw=true",
     "header_only_library"
 );
+
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "tobiaslocker/base64",
+    "A modern C++ base64 encoder and decoder",
+    "Lightweight and fast JSON for Modern C++",
+    "https://github.com/tobiaslocker/base64",
+    "https://github.com/tobiaslocker/base64/blob/master/include/base64.hpp?raw=true",
+    "header_only_library"
+);

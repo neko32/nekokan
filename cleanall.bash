@@ -14,7 +14,12 @@ if [ -e evgen ]; then
     rm evgen
 fi
 
+pushd .
 cd sample_app/json
 make clean
+popd
+cd sample_app/base64
+make clean
+
 
 echo "done."
