@@ -62,6 +62,10 @@ int main() {
     ss << "# NEKOKAN_CONF_DIR" << endl;
     ss << "export NEKOKAN_CONF_DIR=" << (home_path / "nekokan" / "conf").string() << endl;
 
+    // NEKORC DIR
+    ss << "# NEKORC_PATH" << endl;
+    ss << "export NEKORC_PATH=" << (opt_path / "nekorc").string() << endl;
+
     // NEKOKAN_LIB_DIR
     ss << "# NEKOKAN_LIB_DIR" << endl;
     ss << "export NEKOKAN_LIB_DIR=" << libnekokan_path.string() << endl;
@@ -89,6 +93,7 @@ int main() {
     ss << "alias gonkbin=\"cd ${NEKOKAN_BIN_DIR}\"" << endl;
     ss << "alias gonkconf=\"cd ${NEKOKAN_CONF_DIR}\"" << endl;
     ss << "alias gonkproj=\"cd ${NEKOKAN_CODE_DIR}\"" << endl;
+    ss << "alias gonkrc=\"cd ${NEKORC_PATH}\"" << endl;
     cout << ss.str() << endl;
 
     // write the result to ~/.nekokan_include.bash

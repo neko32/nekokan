@@ -25,6 +25,7 @@ def env_var_chk(runtime_only:bool) -> bool:
         "NEKOKAN_BIN_DIR": "Directory where Nekokan Apps are installed",
         "NEKOKAN_LIB_DIR": "Directory where nekokan libraries are located",
         "NEKOKAN_CONF_DIR": "Directory where nekokan configurations are stored",
+        "NEKORC_PATH": "Directory where nekokan app/lib's resources are stored",
         "TANULIB_CPP_CODE_DIR": "Directory where tanulib cpp lib's code is located",
         "NEKOKAN_CODE_DIR": "Direcotory where nekokan code is located",
     }

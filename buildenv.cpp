@@ -24,6 +24,7 @@ int main() {
     paths.push_back(get_path("NEKOKAN_INDB_PATH"));
     paths.push_back(get_path("NEKOKAN_BIN_DIR"));
     paths.push_back(get_path("NEKOKAN_LIB_DIR"));
+    paths.push_back(get_path("NEKORC_PATH"));
     paths.push_back(get_path("NEKOKAN_CONF_DIR"));
 
     assert(all_of(paths.begin(), paths.end(), [](optional<filesystem::path>& p){return p.has_value();}));
