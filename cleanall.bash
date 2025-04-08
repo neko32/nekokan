@@ -18,8 +18,14 @@ pushd .
 cd sample_app/json
 make clean
 popd
+pushd .
 cd sample_app/base64
 make clean
+popd
+pushd .
+cd sample_app/csv
+make clean
+popd
 
 
 echo "done."

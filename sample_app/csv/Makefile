@@ -15,8 +15,8 @@ CXXFLAGS := -std=c++20 -Wall -Wextra -g -pthread
 LFLAGS = -lpqxx -lpq -lcpprest -lpthread -lssl -lcrypto -lcppunit
 
 # lib/app name
-NEKOKAN_PACKAGE_NAME := csv_sample
-BIN_NAME := csv_sample_bin
+NEKOKAN_PACKAGE_NAME := json_sample
+BIN_NAME := json_sample_bin
 
 # define tanulib app dir
 NEKOKAN_HEADER_DIR := $(NEKOKAN_LIB_DIR)/include
