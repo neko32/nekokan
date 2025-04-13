@@ -60,7 +60,7 @@ int main() {
 
     // NEKOKAN_CONF_DIR
     ss << "# NEKOKAN_CONF_DIR" << endl;
-    ss << "export NEKOKAN_CONF_DIR=" << (home_path / "nekokan" / "conf").string() << endl;
+    ss << "export NEKOKAN_CONF_DIR=" << (opt_path / "nekorc").string() << endl;
 
     // NEKORC DIR
     ss << "# NEKORC_PATH" << endl;

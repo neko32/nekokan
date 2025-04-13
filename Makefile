@@ -7,7 +7,7 @@
 CXX = g++-13
 
 # define any compile-time flags
-CXXFLAGS := -std=c++20 -Wall -Wextra -g -pthread 
+CXXFLAGS := -std=c++20 -Wall -Wextra -g -pthread -shared -fPIC
 
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
@@ -15,9 +15,9 @@ CXXFLAGS := -std=c++20 -Wall -Wextra -g -pthread
 LFLAGS = -lpqxx -lpq -lcpprest -lpthread -lssl -lcrypto -lcppunit
 
 # lib/app name
-BIN_TYPE = exe
-NEKOKAN_PACKAGE_NAME := base64_sample
-BIN_NAME := base64_sample_bin
+BIN_TYPE = so
+NEKOKAN_PACKAGE_NAME := __NEKOKAN_PACKAGE_NAME__
+BIN_NAME := lib__BIN_NAME__.so
 
 # define nekokan header dir
 NEKOKAN_HEADER_DIR := $(NEKOKAN_LIB_DIR)/include
@@ -73,7 +73,7 @@ DEPS := $(OBJECTS:.o=.d)
 ifeq ($(BIN_TYPE),exe)
 INSTALL_PATH := $(NEKOKAN_BIN_DIR)/$(NEKOKAN_PACKAGE_NAME)/$(BIN_NAME)
 else
-INSTALL_PATH := $(NEKOKAN_BIN_DIR)/$(BIN_NAME)
+INSTALL_PATH := $(NEKOKAN_LIB_DIR)/$(BIN_NAME)
 endif
 
 #
@@ -114,14 +114,14 @@ clean:
 .PHONY: install
 install:
 	$(MAKE) all
-	$(RMREC) $(NEKOKAN_BIN_DIR)/$(NEKOKAN_PACKAGE_NAME)
+	$(RMREC) $(NEKOKAN_LIB_DIR)/$(NEKOKAN_PACKAGE_NAME)
 	$(RMREC) $(NEKOKAN_HEADER_DIR)/$(NEKOKAN_PACKAGE_NAME)
 	$(MD) $(NEKOKAN_HEADER_DIR)/$(NEKOKAN_PACKAGE_NAME)
-	$(MD) $(NEKOKAN_BIN_DIR)/$(NEKOKAN_PACKAGE_NAME)
-	$(CP) $(OUTPUTMAIN) $(NEKOKAN_BIN_DIR)/$(NEKOKAN_PACKAGE_NAME)/$(BIN_NAME)
+	$(MD) $(NEKOKAN_LIB_DIR)/$(NEKOKAN_PACKAGE_NAME)
+	$(CP) $(OUTPUTMAIN) $(NEKOKAN_LIB_DIR)/$(NEKOKAN_PACKAGE_NAME)/$(BIN_NAME)
 	$(CP) $(OUTPUTMAIN) $(INSTALL_PATH)
 	$(FULLRECCP) ./include $(NEKOKAN_HEADER_DIR)/$(NEKOKAN_PACKAGE_NAME)
-	$(LS) $(NEKOKAN_BIN_DIR)/$(NEKOKAN_PACKAGE_NAME)/$(MAIN)
+	$(LS) $(NEKOKAN_LIB_DIR)/$(NEKOKAN_PACKAGE_NAME)/$(MAIN)
 	@echo install complete!
 
 run: all

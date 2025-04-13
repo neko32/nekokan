@@ -12,12 +12,11 @@ CXXFLAGS := -std=c++20 -Wall -Wextra -g -pthread
 # define library paths in addition to /usr/lib
 #   if I wanted to include libraries not in /usr/lib I'd specify
 #   their path using -Lpath, something like:
-LFLAGS = -lpqxx -lpq -lcpprest -lpthread -lssl -lcrypto -lcppunit
+LFLAGS = -lpqxx -lpq -lcpprest -lpthread -lssl -lcrypto -lcppunit -lcpptanu_cfg
 
 # lib/app name
-BIN_TYPE = exe
-NEKOKAN_PACKAGE_NAME := base64_sample
-BIN_NAME := base64_sample_bin
+NEKOKAN_PACKAGE_NAME := jsoncfg_sample
+BIN_NAME := jsoncfg_sample_bin
 
 # define nekokan header dir
 NEKOKAN_HEADER_DIR := $(NEKOKAN_LIB_DIR)/include
@@ -70,12 +69,6 @@ OBJECTS := $(SOURCES:.cpp=.o)
 # define the dependency output files
 DEPS := $(OBJECTS:.o=.d)
 
-ifeq ($(BIN_TYPE),exe)
-INSTALL_PATH := $(NEKOKAN_BIN_DIR)/$(NEKOKAN_PACKAGE_NAME)/$(BIN_NAME)
-else
-INSTALL_PATH := $(NEKOKAN_BIN_DIR)/$(BIN_NAME)
-endif
-
 #
 # The following part of the makefile is generic; it can be used to
 # build any executable just by changing the definitions above and by
@@ -119,7 +112,6 @@ install:
 	$(MD) $(NEKOKAN_HEADER_DIR)/$(NEKOKAN_PACKAGE_NAME)
 	$(MD) $(NEKOKAN_BIN_DIR)/$(NEKOKAN_PACKAGE_NAME)
 	$(CP) $(OUTPUTMAIN) $(NEKOKAN_BIN_DIR)/$(NEKOKAN_PACKAGE_NAME)/$(BIN_NAME)
-	$(CP) $(OUTPUTMAIN) $(INSTALL_PATH)
 	$(FULLRECCP) ./include $(NEKOKAN_HEADER_DIR)/$(NEKOKAN_PACKAGE_NAME)
 	$(LS) $(NEKOKAN_BIN_DIR)/$(NEKOKAN_PACKAGE_NAME)/$(MAIN)
 	@echo install complete!

@@ -108,12 +108,14 @@ namespace nekokan::installer {
 
     enum class LibType {
         REGULAR_LIB,
-        HEADER_ONLY_LIB
+        HEADER_ONLY_LIB,
+        EXECUTABLE
     };
 
     static unordered_map<string, LibType> libtype_str_map {
         {"regular_library", LibType::REGULAR_LIB},
-        {"header_only_library", LibType::HEADER_ONLY_LIB}
+        {"header_only_library", LibType::HEADER_ONLY_LIB},
+        {"executable", LibType::EXECUTABLE}
     };
 
     string from_libtype_to_str(LibType libtype) {
