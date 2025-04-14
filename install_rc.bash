@@ -6,6 +6,7 @@ if [ -z "${NEKORC_PATH}" ]; then
 fi
 
 cd ${NEKORC_PATH}
+rm -fR *
 git clone git@github.com:neko32/nekorc.git
 
 mv nekorc/* .
