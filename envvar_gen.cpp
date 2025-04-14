@@ -137,7 +137,7 @@ int main(int argc, char **argv) {
     ss << "alias gonklib=\"cd ${NEKOKAN_LIB_DIR}\"" << endl;
     ss << "alias gonkbin=\"cd ${NEKOKAN_BIN_DIR}\"" << endl;
     ss << "alias gonkconf=\"cd ${NEKOKAN_CONF_DIR}\"" << endl;
-    ss << "alias gonkproj=\"cd ${NEKOKAN_CODE_DIR}\"" << endl;
+    ss << "alias gonkproj=\"source gonkproj.bash\"" << endl;
     ss << "alias gonkrc=\"cd ${NEKORC_PATH}\"" << endl;
     cout << ss.str() << endl;
 
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
 
     // generate and show a code snippet for .bashrc
     string snippet = R"(
-PATH=${PATH}:${NEKOKAN_CMD_DIR}
+export PATH=${PATH}:${NEKOKAN_CMD_DIR}
 if [ -e ~/.nekokan_include.bash ]; then
   source ~/.nekokan_include.bash
   echo "${LD_LIBRARY_PATH} will be updated with the one optimized for nekokan. Pls revert back if needed"
