@@ -8,6 +8,8 @@
 #include <unordered_map>
 using namespace std;
 
+static const string PLACEHOLDER_PACKAGE_NAME = "__NEKOKAN_PACKAGE_NAME__";
+static const string PLACEHOLDER_BIN_NAME = "__BIN_NAME__";
 static const string PLACEHOLDER_BIN_TYPE = "__BIN_TYPE__";
 static const string PLACEHOLDER_NEKOKAN_DEST = "__NEKOKAN_DEST__";
 static const string PLACEHOLDER_EXTRA_COMPILER_FLAG = "__EXTRA_COMPILER_FLAG__";
@@ -55,7 +57,7 @@ void set_lib_prefix(string &s, BinType bin_type) {
         lib_prefix = "lib";
         break;
     case BinType::EXE:
-        return;
+        break;
     }
     size_t loc = 0;
     while((loc = s.find(PLACEHOLDER_LIB_PREFIX)) != s.npos) {
@@ -73,7 +75,7 @@ void set_lib_postfix(string &s, BinType bin_type) {
         lib_postfix = ".so";
         break;
     case BinType::EXE:
-        return;
+        break;
     }
     size_t loc = 0;
     while((loc = s.find(PLACEHOLDER_LIB_POSTFIX)) != s.npos) {
@@ -81,12 +83,35 @@ void set_lib_postfix(string &s, BinType bin_type) {
     }
 }
 
+void set_package_bin_name(string &s, const string& package_name, const string& bin_name) {
+    size_t loc = 0;
+    while((loc = s.find(PLACEHOLDER_PACKAGE_NAME)) != s.npos) {
+        s.replace(loc, PLACEHOLDER_PACKAGE_NAME.length(), package_name);
+    }
+    while((loc = s.find(PLACEHOLDER_BIN_NAME)) != s.npos) {
+        s.replace(loc, PLACEHOLDER_BIN_NAME.length(), bin_name);
+    }
+}
+
 int main(int argc, char **argv) {
-    if(argc != 2) {
-        cerr << "makefile_gen [a|so|exe]" << endl;
+
+    string bin_type_str {};
+    string package_name {"NA"};
+    string bin_name {"NA"};
+
+    if(argc < 2) {
+        cerr << "makefile_gen [a|so|exe] [package name(optional)] [bin name(optional)]" << endl;
         return 1;
-    };
-    string bin_type_str = string(argv[1]);
+    } else if(argc == 2) {
+        bin_type_str = string{argv[1]};
+    } else if(argc == 3) {
+        bin_type_str = string{argv[1]};
+        package_name = string{argv[2]};
+    } else if(argc >= 4) {
+        bin_type_str = string{argv[1]};
+        package_name = string{argv[2]};
+        bin_name = string{argv[3]};
+    }
     transform(bin_type_str.begin(), bin_type_str.end(), bin_type_str.begin(), ::tolower);
     if(bin_type_map.find(bin_type_str) == bin_type_map.end()) {
         cerr << format("bin type {} not found", bin_type_str) << endl;
@@ -114,6 +139,7 @@ int main(int argc, char **argv) {
     set_extra_compiler_flag(makefile, bin_type);
     set_lib_prefix(makefile, bin_type);
     set_lib_postfix(makefile, bin_type);
+    set_package_bin_name(makefile, package_name, bin_name);
     cout << makefile << endl;
 
     ofstream ofs;
