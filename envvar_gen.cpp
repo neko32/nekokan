@@ -7,14 +7,49 @@
 #include <cstdlib>
 #include <array>
 #include <filesystem>
+#include <pwd.h>
+#include <grp.h>
+#include <cstring>
 using namespace std;
 
-int main() {
+bool user_exist(const string& user_name) {
+    const char* c_usr_name = user_name.c_str();
+    struct passwd* pw = getpwnam(c_usr_name);
+    return pw != nullptr;
+}
+
+bool group_exist(const string& group_name) {
+    const char* c_group_name = group_name.c_str();
+    struct group* grp = getgrnam(c_group_name);
+    return grp != nullptr;
+}
+
+int main(int argc, char **argv) {
 
     array<char, 2048> buf;
     string home_dir;
     stringstream ss;
 
+    string nk_admin_user {};
+    string nk_admin_group {};
+
+    if(argc == 2) {
+        nk_admin_user = string(argv[1]);
+        nk_admin_group = string(argv[1]);
+    } else if(argc == 3) {
+        nk_admin_user = string(argv[1]);
+        nk_admin_group = string(argv[2]);
+    } else {
+        cerr << "evgen [nk admin user name] [nk admin group name]" << endl;
+        return 1;
+    }
+
+    if(!user_exist(nk_admin_user) || !group_exist(nk_admin_group)) {
+        cerr << "specified user or group doesn't exist" << endl;
+        return 2;
+    }
+    cout << "nekokan admin user - " << nk_admin_user << endl;
+    cout << "nekokan admin group - " << nk_admin_group << endl;
     
     // Preamble
     ss << "#!/bin/bash" << endl;
@@ -70,9 +105,19 @@ int main() {
     ss << "# NEKOKAN_LIB_DIR" << endl;
     ss << "export NEKOKAN_LIB_DIR=" << libnekokan_path.string() << endl;
 
+    // NEKOKAN_CMD_DIR
+    ss << "# NEKOKAN_CMD_DIR" << endl;
+    ss << "export NEKOKAN_CMD_DIR=" << (opt_path / "nkcmd").string() << endl;
+
     // TANULIB_CPP_CODE_DIR
     ss << "# TANULIB_CPP_CODE_DIR" << endl;
     ss << "export TANULIB_CPP_CODE_DIR=" << (tanuproj_path / "tanulib_cpp") << endl;
+
+    // NEKOKAN_ADMIN_USER & NEKOKAN_ADMIN_GROUP
+    ss << "# NEKOKAN_ADMIN_USER" << endl;
+    ss << "export NEKOKAN_ADMIN_USER=" << nk_admin_user << endl;
+    ss << "# NEKOKAN_ADMIN_GROUP" << endl;
+    ss << "export NEKOKAN_ADMIN_GROUP=" << nk_admin_group << endl;
 
     // NEKOKAN_ENV
     ss << "# NEKOKAN_ENV" << endl;
@@ -115,6 +160,7 @@ int main() {
 
     // generate and show a code snippet for .bashrc
     string snippet = R"(
+PATH=${PATH}:${NEKOKAN_CMD_DIR}
 if [ -e ~/.nekokan_include.bash ]; then
   source ~/.nekokan_include.bash
   echo "${LD_LIBRARY_PATH} will be updated with the one optimized for nekokan. Pls revert back if needed"
