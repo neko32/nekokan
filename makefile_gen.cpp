@@ -33,23 +33,6 @@ void set_bintype(string& s, const string& bin_type) {
     }
 }
 
-void set_nekokan_dest(string& s, BinType bin_type) {
-    string nekokan_dest {};
-    switch(bin_type) {
-    case BinType::A:
-    case BinType::SO:
-        nekokan_dest = "NEKOKAN_LIB_DIR";
-        break;
-    case BinType::EXE:
-        nekokan_dest = "NEKOKAN_BIN_DIR";
-        break;
-    }
-    size_t loc = 0;
-    while((loc = s.find(PLACEHOLDER_NEKOKAN_DEST)) != s.npos) {
-        s.replace(loc, PLACEHOLDER_NEKOKAN_DEST.length(), nekokan_dest);
-    }
-}
-
 void set_extra_compiler_flag(string& s, BinType bin_type) {
     string extra_compiler_flag {};
     switch(bin_type) {
@@ -128,7 +111,6 @@ int main(int argc, char **argv) {
     string makefile = ss.str();
 
     set_bintype(makefile, bin_type_str);
-    set_nekokan_dest(makefile, bin_type);
     set_extra_compiler_flag(makefile, bin_type);
     set_lib_prefix(makefile, bin_type);
     set_lib_postfix(makefile, bin_type);
