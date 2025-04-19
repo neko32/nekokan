@@ -139,6 +139,7 @@ int main(int argc, char **argv) {
     ss << "alias gonkconf=\"cd ${NEKOKAN_CONF_DIR}\"" << endl;
     ss << "alias gonkproj=\"source gonkproj.bash\"" << endl;
     ss << "alias gonkrc=\"cd ${NEKORC_PATH}\"" << endl;
+    ss << "alias rundbeaver=\"rundbeaver.bash\"" << endl;
     cout << ss.str() << endl;
 
     // write the result to ~/.nekokan_include.bash
