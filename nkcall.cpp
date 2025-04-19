@@ -290,7 +290,9 @@ namespace nekokan::installer {
     void get_catalog_data(unordered_map<string, CatalogItem>& catalog) {
         sqlite3 *db = nullptr;
         char *err_msg = nullptr;
-        int ret = sqlite3_open("db/catalog.sqlite3", &db);
+        string indb_path_str {getenv("NEKOKAN_INDB_PATH")};
+        filesystem::path indb_path {indb_path_str};
+        int ret = sqlite3_open((indb_path / "nekokan" / "db" / "catalog.sqlite3").c_str(), &db);
         if(ret != SQLITE_OK) {
             throw runtime_error("catalog db open failed");
         }
@@ -316,8 +318,9 @@ int main(int argc, char** argv) {
     nekokan::installer::get_catalog_data(catalogs);
 
     if(name == "list") {
+        int counter = 1;
         for(const auto& [key, item]:catalogs) {
-            cout << key << " -> " << item.to_str() << endl;
+            cout << "[" << counter++ << "]:" << key << " -> " << item.to_str() << endl << endl;
         }
         exit(0);
     }
