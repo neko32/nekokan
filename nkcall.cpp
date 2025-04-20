@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <regex>
 #include <curl/curl.h>
+#include <format>
 #include <sqlite3.h>
 
 using namespace std;
@@ -306,32 +307,35 @@ namespace nekokan::installer {
 
 }
 
-int main(int argc, char** argv) {
-    if(argc != 2) {
-        cout << "nkcall [app/lib name]" << endl;
-        exit(1);
+int cmd_uninstall(
+    const string& name,
+    unordered_map<string, nekokan::installer::CatalogItem>& catalogs
+) {
+    const nekokan::installer::CatalogItem& item = catalogs[name];
+    const string lib_path_str {getenv("NEKOKAN_LIB_DIR")};
+    filesystem::path lib_path {lib_path_str};
+    const string bin_path_str {getenv("NEKOKAN_BIN_DIR")};
+    filesystem::path bin_path {bin_path_str};
+
+    switch(item.libtype()) {
+    case nekokan::installer::LibType::HEADER_ONLY_LIB:
+        stringstream ss {name};
+        string lib_root;
+        getline(ss, lib_root, '/'); 
+        filesystem::path delete_path = lib_path / "include" / lib_root;
+        cout << format("deleting {} ...", delete_path.string()) << endl;
+        filesystem::remove_all(delete_path);
+        cout << format("{}[install path:{}] was removed successfully.", name, delete_path.string()) << endl;
+        return 0;
     }
+    return 0;
+}
 
-    const string name {argv[1]};
+int cmd_install(
+    const string name,
+    unordered_map<string, nekokan::installer::CatalogItem>& catalogs
+) {
 
-    unordered_map<string, nekokan::installer::CatalogItem> catalogs;
-    nekokan::installer::get_catalog_data(catalogs);
-
-    if(name == "list") {
-        int counter = 1;
-        for(const auto& [key, item]:catalogs) {
-            cout << "[" << counter++ << "]:" << key << " -> " << item.to_str() << endl << endl;
-        }
-        exit(0);
-    }
-
-    cout << "searching " << name << " from Nekokan catalog.." << endl;
-
-    auto found = catalogs.find(name);
-    if(found == catalogs.end()) {
-        cout << name << " was not found in Nekokan catalog. exitting.." << endl;
-        exit(0);
-    }
     const nekokan::installer::CatalogItem& item = catalogs[name];
     cout << name << " found. " << endl;
     cout << item.to_str() << endl << endl;
@@ -375,13 +379,51 @@ int main(int argc, char** argv) {
             cout << "not supported libtype?" << endl;
             ret_code = 2;
             break;
-
-        exit(ret_code);
     }
 
+    return ret_code;
+}
 
-    if(installer != nullptr) {
-        delete installer;
+int main(int argc, char** argv) {
+    if(argc < 2) {
+        cout << "nkcall [cmd] [optional, app/lib name]" << endl;
+        exit(1);
+    }
+
+    const string cmd {argv[1]};
+
+    unordered_map<string, nekokan::installer::CatalogItem> catalogs;
+    nekokan::installer::get_catalog_data(catalogs);
+
+    if(cmd == "list") {
+        int counter = 1;
+        for(const auto& [key, item]:catalogs) {
+            cout << "[" << counter++ << "]:" << key << " -> " << item.to_str() << endl << endl;
+        }
+        exit(0);
+    }
+
+    if(argc < 3) {
+        cerr << format("target is missing for command {}. Exitting..", cmd) << endl;
+        exit(1);
+    }
+
+    string target {argv[2]};
+    cout << format("cmd - {}, target - {}", cmd, target) << endl;
+
+    auto found = catalogs.find(target);
+    if(found == catalogs.end()) {
+        cout << target << " was not found in Nekokan catalog. exitting.." << endl;
+        exit(0);
+    }
+
+    if(cmd == "install") {
+        return cmd_install(target, catalogs);
+    } else if(cmd == "uninstall") {
+        return cmd_uninstall(target, catalogs);
+    } else {
+        cout << cmd << " is not supported." << endl;
+        return 1;
     }
     
 }
