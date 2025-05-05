@@ -140,6 +140,9 @@ int main(int argc, char **argv) {
     ss << "alias gonkproj=\"source gonkproj.bash\"" << endl;
     ss << "alias gonkrc=\"cd ${NEKORC_PATH}\"" << endl;
     ss << "alias rundbeaver=\"rundbeaver.bash\"" << endl;
+    ss << "alias runollama=\"runollama.bash\"" << endl;
+    ss << "alias stopollama=\"stopollama.bash\"" << endl;
+    ss << "alias runnekomcphost=\"runnekomcphost.bash\"" << endl;
     cout << ss.str() << endl;
 
     // write the result to ~/.nekokan_include.bash
@@ -167,6 +170,8 @@ if [ -e ~/.nekokan_include.bash ]; then
   setnkld
   echo "new LD_LIBRARY_PATH is ${LD_LIBRARY_PATH}"
   export PATH=${PATH}:${NEKOKAN_CMD_DIR}
+  export GO111MODULE=on
+  export ANTHROPIC_API_KEY=tobeset
 fi
     )";
     cout << "copy the below to your .bashrc or equiv:" << endl;
