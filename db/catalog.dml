@@ -27,3 +27,14 @@ values (
     "https://github.com/ben-strasser/fast-cpp-csv-parser/blob/master/csv.h?raw=true",
     "header_only_library"
 );
+
+
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "nekomcpserver/weather",
+    "US-Only Weather data provider",
+    "MCP Server: US-Only Weather data provider",
+    "https://github.com/neko32/nekomcp",
+    "https://github.com/neko32/nekomcp/blob/main/weather.py?raw=true",
+    "python_nekomcp_server"
+);

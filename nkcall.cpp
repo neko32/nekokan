@@ -110,13 +110,19 @@ namespace nekokan::installer {
     enum class LibType {
         REGULAR_LIB,
         HEADER_ONLY_LIB,
-        EXECUTABLE
+        EXECUTABLE,
+        PY_PLAIN_SCRIPT,
+        PY_PI_MODULE,
+        PY_NEKOMCP_SERVER
     };
 
     static unordered_map<string, LibType> libtype_str_map {
         {"regular_library", LibType::REGULAR_LIB},
         {"header_only_library", LibType::HEADER_ONLY_LIB},
-        {"executable", LibType::EXECUTABLE}
+        {"executable", LibType::EXECUTABLE},
+        {"python_plain_script", LibType::PY_PLAIN_SCRIPT},
+        {"python_nekomcp_server", LibType::PY_NEKOMCP_SERVER},
+        {"python_pi_module", LibType::PY_PI_MODULE}
     };
 
     string from_libtype_to_str(LibType libtype) {
@@ -125,6 +131,14 @@ namespace nekokan::installer {
                 return "regular_library";
             case LibType::HEADER_ONLY_LIB:
                 return "header_only_library";
+            case LibType::EXECUTABLE:
+                return "executable";
+            case LibType::PY_PLAIN_SCRIPT:
+                return "python_plain_script";
+            case LibType::PY_PI_MODULE:
+                return "python_pi_module";
+            case LibType::PY_NEKOMCP_SERVER:
+                return "python_nekomcp_server";
             default:
                 throw runtime_error("not supported libtype");
         }
@@ -216,7 +230,7 @@ namespace nekokan::installer {
         virtual ~Installer(){}
 
         virtual bool install() = 0;
-        bool already_installed() {
+        virtual bool already_installed() {
             return filesystem::exists(this->m_install_dest);
         }
         const string& remote_location() {return m_remote_location;}
@@ -244,6 +258,46 @@ namespace nekokan::installer {
             string fetched_data = tanulib::net::rget_text(this->m_remote_location);
 
             cout << "installing fetched header file to " << inst_path.string() << " ... " << endl;
+            ofstream ofs {inst_path.string()};
+            if(!ofs.is_open()) {
+                throw runtime_error("failed to open " + inst_path.string());
+            }
+            ofs << fetched_data << endl;
+            ofs.close();
+            cout << "done." << endl;
+
+            return true;
+        }
+    };
+
+    class NekoMCPInstaller: public Installer {
+    public:    
+        NekoMCPInstaller(const string& remote_loc, const string& install_dest, LibType libtype): Installer(remote_loc, install_dest, libtype){
+            char* bin_env_var = getenv("NEKOKAN_BIN_DIR");
+            if(bin_env_var == nullptr) throw runtime_error("NEKOKAN_BIN_DIR env variable must be set.");
+            string bin_env_s {bin_env_var};
+            filesystem::path lib_path {bin_env_s};
+            lib_path /= install_dest;
+            this->m_install_dest = lib_path.string();
+        }
+
+        bool install() override {
+
+            tanulib::net::URLParser urlparser {this->remote_location()};
+            string file_name = urlparser.path_last();
+            filesystem::path inst_path {this->m_install_dest};
+            inst_path /= file_name;
+
+            if(!filesystem::exists(inst_path.parent_path())) {
+                if(!filesystem::create_directories(inst_path.parent_path())) {
+                    throw runtime_error("creading directories (equiv to mkdir -p) for " + inst_path.parent_path().string() + " failed.");
+                };
+            }
+
+            cout << "fetching mcp server code from " << this->m_remote_location << " ... " << endl;
+            string fetched_data = tanulib::net::rget_text(this->m_remote_location);
+
+            cout << "installing mcp server to " << inst_path.string() << " ... " << endl;
             ofstream ofs {inst_path.string()};
             if(!ofs.is_open()) {
                 throw runtime_error("failed to open " + inst_path.string());
@@ -363,6 +417,28 @@ int cmd_install(
             cout << installer->install_dest() << " has already the lib? " << boolalpha << already_exists << endl;
             if(already_exists) {
                 cout << "library " << item.display_name() << " has already been installed to " << installer->install_dest() << endl;
+            } else {
+                try {
+                    if(!installer->install()) {
+                        cerr << "installer couldn't completed installation." << endl;
+                        ret_code = 1;
+                    };
+                } catch(const runtime_error& e) {
+                    cerr << e.what() << endl;
+                    ret_code = 1;
+                }
+            }
+            break;
+        case nekokan::installer::LibType::PY_NEKOMCP_SERVER:
+            installer = new nekokan::installer::NekoMCPInstaller(
+                item.code_location(),
+                item.name(),
+                item.libtype()
+            );
+            already_exists = installer->already_installed();
+            cout << installer->install_dest() << " has already the mcp server? " << boolalpha << already_exists << endl;
+            if(already_exists) {
+                cout << "MCP Server " << item.display_name() << " has already been installed to " << installer->install_dest() << endl;
             } else {
                 try {
                     if(!installer->install()) {
