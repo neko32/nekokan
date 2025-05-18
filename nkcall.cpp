@@ -113,6 +113,7 @@ namespace nekokan::installer {
         EXECUTABLE,
         PY_PLAIN_SCRIPT,
         PY_PI_MODULE,
+        PY_UV_MODULE,
         PY_NEKOMCP_SERVER
     };
 
@@ -122,7 +123,8 @@ namespace nekokan::installer {
         {"executable", LibType::EXECUTABLE},
         {"python_plain_script", LibType::PY_PLAIN_SCRIPT},
         {"python_nekomcp_server", LibType::PY_NEKOMCP_SERVER},
-        {"python_pi_module", LibType::PY_PI_MODULE}
+        {"python_pi_module", LibType::PY_PI_MODULE},
+        {"python_uv_module", LibType::PY_UV_MODULE},
     };
 
     string from_libtype_to_str(LibType libtype) {
@@ -137,6 +139,8 @@ namespace nekokan::installer {
                 return "python_plain_script";
             case LibType::PY_PI_MODULE:
                 return "python_pi_module";
+            case LibType::PY_UV_MODULE:
+                return "python_uv_module";
             case LibType::PY_NEKOMCP_SERVER:
                 return "python_nekomcp_server";
             default:
@@ -216,15 +220,6 @@ namespace nekokan::installer {
         LibType m_libtype;
     public:
         Installer(const string& remote_loc, const string& install_dest, LibType libtype): m_remote_location(remote_loc), m_libtype(libtype) {
-            char* lib_env_var = getenv("NEKOKAN_LIB_DIR");
-            if(lib_env_var == nullptr) throw runtime_error("NEKOKAN_LIB_DIR env variable must be set.");
-            string lib_env_s {lib_env_var};
-            filesystem::path lib_path {lib_env_s};
-            if(libtype == LibType::HEADER_ONLY_LIB) {
-                lib_path /= "include";
-            }
-            lib_path /= install_dest;
-            this->m_install_dest = lib_path.string();
         }
 
         virtual ~Installer(){}
@@ -238,9 +233,31 @@ namespace nekokan::installer {
         LibType libtype() {return m_libtype;}
     };
 
-    class HeaderOnlyInstaller:public Installer {
+    class LibInstaller:public Installer {
+    protected:
+        string m_remote_location;
+        string m_install_dest;
+        LibType m_libtype;
     public:
-        HeaderOnlyInstaller(const string& remote_loc, const string& install_dest, LibType libtype): Installer(remote_loc, install_dest, libtype){}
+        LibInstaller(const string& remote_loc, const string& install_dest, LibType libtype): Installer(remote_loc, install_dest, libtype) {
+            char* lib_env_var = getenv("NEKOKAN_LIB_DIR");
+            if(lib_env_var == nullptr) throw runtime_error("NEKOKAN_LIB_DIR env variable must be set.");
+            string lib_env_s {lib_env_var};
+            filesystem::path lib_path {lib_env_s};
+            if(libtype == LibType::HEADER_ONLY_LIB) {
+                lib_path /= "include";
+            }
+            lib_path /= install_dest;
+            this->m_install_dest = lib_path.string();
+        }
+
+        virtual ~LibInstaller(){}
+        virtual bool install() = 0;
+    };
+
+    class HeaderOnlyInstaller:public LibInstaller {
+    public:
+        HeaderOnlyInstaller(const string& remote_loc, const string& install_dest, LibType libtype): LibInstaller(remote_loc, install_dest, libtype){}
         bool install() override {
 
             tanulib::net::URLParser urlparser {this->remote_location()};
@@ -270,16 +287,26 @@ namespace nekokan::installer {
         }
     };
 
-    class NekoMCPInstaller: public Installer {
-    public:    
-        NekoMCPInstaller(const string& remote_loc, const string& install_dest, LibType libtype): Installer(remote_loc, install_dest, libtype){
+    class BinInstaller: public Installer {
+    public:
+        BinInstaller(const string& remote_loc, const string& install_dest, LibType libtype): Installer(remote_loc, install_dest, libtype){
             char* bin_env_var = getenv("NEKOKAN_BIN_DIR");
             if(bin_env_var == nullptr) throw runtime_error("NEKOKAN_BIN_DIR env variable must be set.");
             string bin_env_s {bin_env_var};
-            filesystem::path lib_path {bin_env_s};
-            lib_path /= install_dest;
-            this->m_install_dest = lib_path.string();
+            filesystem::path bin_path {bin_env_s};
+            bin_path /= install_dest;
+            this->m_install_dest = bin_path.string();
         }
+
+        virtual ~BinInstaller(){}
+        virtual bool install() = 0;
+    };
+
+    class NekoMCPInstaller: public BinInstaller {
+    public:    
+        NekoMCPInstaller(const string& remote_loc, const string& install_dest, LibType libtype): BinInstaller(remote_loc, install_dest, libtype){}
+
+        virtual ~NekoMCPInstaller(){}
 
         bool install() override {
 
@@ -307,6 +334,53 @@ namespace nekokan::installer {
             cout << "done." << endl;
 
             return true;
+        }
+    };
+
+    class PyPiInstaller:public BinInstaller {
+    public:    
+        PyPiInstaller(const string& remote_loc, const string& install_dest, LibType libtype): BinInstaller(remote_loc, install_dest, libtype){}
+
+        bool install() override {
+            string pip_bin{getenv("PYTHON_PIP_BIN")};
+            stringstream ss{this->m_install_dest};
+            vector<string> install_dest_dirs{};
+            string t;
+            while(getline(ss, t, '/')) {
+                install_dest_dirs.push_back(t);
+            }
+            return system(format("{} install {}", pip_bin, install_dest_dirs.back()).c_str()) == 0 ? true: false;
+        }
+
+        bool already_installed() override {
+            string pip_bin{getenv("PYTHON_PIP_BIN")};
+            stringstream ss{this->m_install_dest};
+            vector<string> install_dest_dirs{};
+            string t;
+            while(getline(ss, t, '/')) {
+                install_dest_dirs.push_back(t);
+            }
+            return system(format("{} show {}", pip_bin, install_dest_dirs.back()).c_str()) == 0;
+        }
+    };
+
+    class PyUVInstaller:public BinInstaller {
+    public:    
+        PyUVInstaller(const string& remote_loc, const string& install_dest, LibType libtype): BinInstaller(remote_loc, install_dest, libtype){}
+
+        bool install() override {
+            stringstream ss{this->m_install_dest};
+            vector<string> install_dest_dirs{};
+            string t;
+            while(getline(ss, t, '/')) {
+                install_dest_dirs.push_back(t);
+            }
+            return system(format("uv tool install {}", install_dest_dirs.back()).c_str()) == 0 ? true: false;
+        }
+
+        bool already_installed() override {
+            // [TODO]
+            return false;
         }
     };
 
@@ -373,6 +447,7 @@ int cmd_uninstall(
 
     stringstream ss {name};
     string package_root;
+    vector<string> package_paths;
     filesystem::path delete_path;
 
     switch(item.libtype()) {
@@ -391,6 +466,15 @@ int cmd_uninstall(
         cout << format("deleting {} ...", delete_path.string()) << endl;
         filesystem::remove_all(delete_path);
         cout << format("{}[install path:{}] was removed successfully.", name, delete_path.string()) << endl;
+        return 0;
+    case nekokan::installer::LibType::PY_UV_MODULE:
+        stringstream ss {name};
+        string package_root;
+        while(getline(ss, package_root, '/')) {
+            package_paths.push_back(package_root);
+        }
+        cout << format("deleting {} ...", package_paths.back()) << endl;
+        system(format("uv tool uninstall {}", package_paths.back()).c_str());
         return 0;
     }
     return 0;
@@ -440,6 +524,29 @@ int cmd_install(
                 }
             }
             break;
+        case nekokan::installer::LibType::PY_PI_MODULE:
+            installer = new nekokan::installer::PyPiInstaller(
+                item.code_location(),
+                item.name(),
+                item.libtype()
+            );
+
+            already_exists = installer->already_installed();
+            cout << installer->install_dest() << " has already installed and found in PIP? " << boolalpha << already_exists << endl;
+            if(already_exists) {
+                cout << "PyPi module " << item.display_name() << " has already been installed in PIP" << endl;
+            } else {
+                try {
+                    if(!installer->install()) {
+                        cerr << "installer couldn't completed installation." << endl;
+                        ret_code = 1;
+                    };
+                } catch(const runtime_error& e) {
+                    cerr << e.what() << endl;
+                    ret_code = 1;
+                }
+            }
+            break;
         case nekokan::installer::LibType::PY_NEKOMCP_SERVER:
             installer = new nekokan::installer::NekoMCPInstaller(
                 item.code_location(),
@@ -450,6 +557,30 @@ int cmd_install(
             cout << installer->install_dest() << " has already the mcp server? " << boolalpha << already_exists << endl;
             if(already_exists) {
                 cout << "MCP Server " << item.display_name() << " has already been installed to " << installer->install_dest() << endl;
+            } else {
+                try {
+                    if(!installer->install()) {
+                        cerr << "installer couldn't completed installation." << endl;
+                        ret_code = 1;
+                    };
+                } catch(const runtime_error& e) {
+                    cerr << e.what() << endl;
+                    ret_code = 1;
+                }
+            }
+            break;
+        case nekokan::installer::LibType::PY_UV_MODULE:
+            installer = new nekokan::installer::PyUVInstaller(
+                item.code_location(),
+                item.name(),
+                item.libtype()
+            );
+
+            // [TODO] UV existance check
+            //already_exists = installer->already_installed();
+            //cout << installer->install_dest() << " has already installed and found in PIP? " << boolalpha << already_exists << endl;
+            if(already_exists) {
+                cout << "UV tool " << item.display_name() << " has already been installed in UV" << endl;
             } else {
                 try {
                     if(!installer->install()) {

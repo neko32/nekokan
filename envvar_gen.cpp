@@ -127,10 +127,13 @@ int main(int argc, char **argv) {
     ss << "# Prepend LIBNEKOKAN_DIR to LD_LIBRARY_PATH" << endl;
     ss << "export LD_LIBRARY_PATH=" << libnekokan_path.string() << ":${LD_LIBRARY_PATH}" << endl;
 
+    // PIP
+    ss << "# PYTHON_PIP_BIN" << endl;
+    ss << "export PYTHON_PIP_BIN=pip3" << endl;
+
     // special command for LD_LIBRARY_PATH update
     ss << "# special command to optimie LD_LIBRARY_PATH for nekokan" << endl;
     ss << "alias setnkld=\"export LD_LIBRARY_PATH=" << libnekokan_path.string() << ":/usr/local/lib\"" << endl;
-
 
     // shortcut to nekokan
     ss << "# Shortcuts for nekokan" << endl;

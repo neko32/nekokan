@@ -38,3 +38,13 @@ values (
     "https://github.com/neko32/nekomcp/blob/main/weather.py?raw=true",
     "python_nekomcp_server"
 );
+
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "nekomcpserver/external/mcp-server-time",
+    "Time MCP provider",
+    "MCP Server: Time Provider",
+    "https://github.com/modelcontextprotocol/servers/tree/main/src/time",
+    "https://github.com/modelcontextprotocol/servers/tree/main/src/time",
+    "python_uv_module"
+);

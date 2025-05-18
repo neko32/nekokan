@@ -30,7 +30,8 @@ def env_var_chk(runtime_only:bool) -> bool:
         "TANULIB_CPP_CODE_DIR": "Directory where tanulib cpp lib's code is located",
         "NEKOKAN_CODE_DIR": "Direcotory where nekokan code is located",
         "NEKOKAN_ADMIN_USER": "Admin user of nekokan",
-        "NEKOKAN_ADMIN_GROUP": "Admin group of nekokan"
+        "NEKOKAN_ADMIN_GROUP": "Admin group of nekokan",
+        "PYTHON_PIP_BIN": "pip command name"
     }
     if runtime_only:
         del required_env_vars["TANULIB_CPP_CODE_DIR"]
