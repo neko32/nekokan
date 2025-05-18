@@ -371,12 +371,23 @@ int cmd_uninstall(
     const string bin_path_str {getenv("NEKOKAN_BIN_DIR")};
     filesystem::path bin_path {bin_path_str};
 
+    stringstream ss {name};
+    string package_root;
+    filesystem::path delete_path;
+
     switch(item.libtype()) {
     case nekokan::installer::LibType::HEADER_ONLY_LIB:
-        stringstream ss {name};
-        string lib_root;
-        getline(ss, lib_root, '/'); 
-        filesystem::path delete_path = lib_path / "include" / lib_root;
+        getline(ss, package_root, '/'); 
+        delete_path = lib_path / "include" / package_root;
+        cout << format("deleting {} ...", delete_path.string()) << endl;
+        filesystem::remove_all(delete_path);
+        cout << format("{}[install path:{}] was removed successfully.", name, delete_path.string()) << endl;
+        return 0;
+    case nekokan::installer::LibType::EXECUTABLE:
+    case nekokan::installer::LibType::PY_NEKOMCP_SERVER:
+        // if bin name has multiple directories like x/y, then take x to delete all from upper dir
+        getline(ss, package_root, '/');
+        delete_path = bin_path / package_root;
         cout << format("deleting {} ...", delete_path.string()) << endl;
         filesystem::remove_all(delete_path);
         cout << format("{}[install path:{}] was removed successfully.", name, delete_path.string()) << endl;
