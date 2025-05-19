@@ -48,3 +48,13 @@ values (
     "https://github.com/modelcontextprotocol/servers/tree/main/src/time",
     "python_uv_module"
 );
+
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "pypi/loguru",
+    "Loguru",
+    "Loguru: logging library",
+    "https://github.com/Delgan/loguru/tree/master",
+    "https://github.com/Delgan/loguru/tree/master",
+    "python_pi_module"
+);

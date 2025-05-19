@@ -447,6 +447,7 @@ int cmd_uninstall(
 
     stringstream ss {name};
     string package_root;
+    string pip_bin{getenv("PYTHON_PIP_BIN")};
     vector<string> package_paths;
     filesystem::path delete_path;
 
@@ -467,9 +468,14 @@ int cmd_uninstall(
         filesystem::remove_all(delete_path);
         cout << format("{}[install path:{}] was removed successfully.", name, delete_path.string()) << endl;
         return 0;
+    case nekokan::installer::LibType::PY_PI_MODULE:
+        while(getline(ss, package_root, '/')) {
+            package_paths.push_back(package_root);
+        }
+        cout << format("deleting {} ...", package_paths.back()) << endl;
+        system(format("{} uninstall {}", pip_bin, package_paths.back()).c_str());
+        return 0;
     case nekokan::installer::LibType::PY_UV_MODULE:
-        stringstream ss {name};
-        string package_root;
         while(getline(ss, package_root, '/')) {
             package_paths.push_back(package_root);
         }
