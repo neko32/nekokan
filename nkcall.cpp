@@ -313,10 +313,11 @@ namespace nekokan::installer {
             tanulib::net::URLParser urlparser {this->remote_location()};
             string file_name = urlparser.path_last();
             filesystem::path inst_path {this->m_install_dest};
-            inst_path /= file_name;
+            filesystem::path mcpcode_path {this->m_install_dest};
+            mcpcode_path /= file_name;
 
-            if(!filesystem::exists(inst_path.parent_path())) {
-                if(!filesystem::create_directories(inst_path.parent_path())) {
+            if(!filesystem::exists(inst_path)) {
+                if(!filesystem::create_directories(inst_path)) {
                     throw runtime_error("creading directories (equiv to mkdir -p) for " + inst_path.parent_path().string() + " failed.");
                 };
             }
@@ -324,13 +325,73 @@ namespace nekokan::installer {
             cout << "fetching mcp server code from " << this->m_remote_location << " ... " << endl;
             string fetched_data = tanulib::net::rget_text(this->m_remote_location);
 
-            cout << "installing mcp server to " << inst_path.string() << " ... " << endl;
-            ofstream ofs {inst_path.string()};
+            cout << "installing mcp server to " << mcpcode_path.string() << " ... " << endl;
+            ofstream ofs {mcpcode_path.string()};
             if(!ofs.is_open()) {
-                throw runtime_error("failed to open " + inst_path.string());
+                throw runtime_error("failed to open " + mcpcode_path.string());
             }
             ofs << fetched_data << endl;
             ofs.close();
+            cout << "done." << endl;
+
+            stringstream remote_ss{this->m_remote_location};
+            string t;
+            vector<string> remote_path_v{};
+            while(getline(remote_ss, t, '/')) {
+                remote_path_v.push_back(t);
+            }
+            // remove file part
+            remote_path_v.pop_back();
+            string remote_path{};
+            for(const string& p:remote_path_v) {
+                remote_path += p + "/";
+            }
+            string remote_python_version_path {remote_path};
+            remote_python_version_path += ".python-version?raw=true";
+
+            cout << "fetching .python-version from " << remote_python_version_path << " ... " << endl;
+            string fetched_pyver = tanulib::net::rget_text(remote_python_version_path);
+            filesystem::path python_ver_path = inst_path / ".python-version";
+
+            cout << "installing .python-version to " << python_ver_path.string() << " ... " << endl;
+            ofstream ofs_pv {python_ver_path.string()};
+            if(!ofs_pv.is_open()) {
+                throw runtime_error("failed to open " + mcpcode_path.string());
+            }
+            ofs_pv << fetched_pyver << endl;
+            ofs_pv.close();
+            cout << "done." << endl;
+
+            string remote_uvlock_path {remote_path};
+            remote_uvlock_path += "uv.lock?raw=true";
+
+            cout << "fetching uv.lock from " << remote_uvlock_path << " ... " << endl;
+            string fetched_uvl = tanulib::net::rget_text(remote_uvlock_path);
+            filesystem::path uvlock_path = inst_path / "uv.lock";
+
+            cout << "installing .python-version to " << uvlock_path.string() << " ... " << endl;
+            ofstream ofs_uvl {uvlock_path.string()};
+            if(!ofs_uvl.is_open()) {
+                throw runtime_error("failed to open " + uvlock_path.string());
+            }
+            ofs_uvl << fetched_uvl << endl;
+            ofs_uvl.close();
+            cout << "done." << endl;
+
+            string remote_pyproj_path {remote_path};
+            remote_pyproj_path += "pyproject.toml?raw=true";
+
+            cout << "fetching pyproject.toml from " << remote_pyproj_path << " ... " << endl;
+            string fetched_pyp = tanulib::net::rget_text(remote_pyproj_path);
+            filesystem::path pyproj_path = inst_path / "pyproject.toml";
+
+            cout << "installing .python-version to " << pyproj_path.string() << " ... " << endl;
+            ofstream ofs_pyp {pyproj_path.string()};
+            if(!ofs_pyp.is_open()) {
+                throw runtime_error("failed to open " + pyproj_path.string());
+            }
+            ofs_pyp << fetched_pyp << endl;
+            ofs_pyp.close();
             cout << "done." << endl;
 
             return true;

@@ -58,3 +58,44 @@ values (
     "https://github.com/Delgan/loguru/tree/master",
     "python_pi_module"
 );
+
+
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "pypi/langchain",
+    "Langchain",
+    "Langchain: framework for LLM-powered app",
+    "https://github.com/langchain-ai/langchain/tree/master",
+    "https://github.com/langchain-ai/langchain/tree/master",
+    "python_pi_module"
+);
+
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "pypi/streamlit",
+    "Streamlit",
+    "Streamlit: transforming python script to an interactive web app",
+    "https://github.com/streamlit/streamlit",
+    "https://github.com/streamlit/streamlit",
+    "python_pi_module"
+);
+
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "pypi/langchain-mcp-adapters",
+    "langchain-mcp-adapters",
+    "Langchain MCP Adapters",
+    "https://github.com/langchain-ai/langchain-mcp-adapters",
+    "https://github.com/langchain-ai/langchain-mcp-adapters",
+    "python_pi_module"
+);
+
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "pyuv/langchain-openai",
+    "langchain-openai",
+    "Langchain Open AI Chat Model",
+    "https://github.com/langchain-ai",
+    "https://github.com/langchain-ai",
+    "python_uv_module"
+);
