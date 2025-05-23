@@ -174,7 +174,11 @@ if [ -e ~/.nekokan_include.bash ]; then
   echo "new LD_LIBRARY_PATH is ${LD_LIBRARY_PATH}"
   export PATH=${PATH}:${NEKOKAN_CMD_DIR}
   export GO111MODULE=on
+  export LANGCHAIN_TRACING_VERSION_V2=true
+  export LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+  export LANGCHAIN_PROJECT=tobeset
   export ANTHROPIC_API_KEY=tobeset
+  export LANGSMITH_API_KEY=tobeset
 fi
     )";
     cout << "copy the below to your .bashrc or equiv:" << endl;
