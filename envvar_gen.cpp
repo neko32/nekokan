@@ -10,6 +10,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <cstring>
+#include <format>
 using namespace std;
 
 bool user_exist(const string& user_name) {
@@ -146,6 +147,7 @@ int main(int argc, char **argv) {
     ss << "alias runollama=\"runollama.bash\"" << endl;
     ss << "alias stopollama=\"stopollama.bash\"" << endl;
     ss << "alias runnekomcphost=\"runnekomcphost.bash\"" << endl;
+    ss << "alias cloneprojgit=\"clone_proj_from_git.bash\"" << endl;
     cout << ss.str() << endl;
 
     // write the result to ~/.nekokan_include.bash
@@ -153,6 +155,10 @@ int main(int argc, char **argv) {
     cout << "writing the above result to " << inc_file_path.string() << " ... " << endl;
 
     if(filesystem::exists(inc_file_path)) {
+        filesystem::path backup_file {format("{}~", inc_file_path.string())};
+        if(!filesystem::copy_file(inc_file_path, backup_file)) {
+            throw runtime_error(format("taking back up of {} as {} failed", inc_file_path.string(), inc_file_path.string()));
+        }
         if(!filesystem::remove(inc_file_path)) {
             throw runtime_error("failed to remove " + inc_file_path.string());
         }
@@ -179,6 +185,7 @@ if [ -e ~/.nekokan_include.bash ]; then
   export LANGCHAIN_PROJECT=tobeset
   export ANTHROPIC_API_KEY=tobeset
   export LANGSMITH_API_KEY=tobeset
+  export GITHUB_USER_NAME=tobeset
 fi
     )";
     cout << "copy the below to your .bashrc or equiv:" << endl;

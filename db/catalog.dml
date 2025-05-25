@@ -99,3 +99,13 @@ values (
     "https://github.com/langchain-ai",
     "python_uv_module"
 );
+
+insert into Catalog (name, display_name, description, repo_url, code_location, libtype) 
+values (
+    "nekokan/base64_sample_app",
+    "nekokan_base64_sample",
+    "Nekokan Sample App for BASE64",
+    "git@github.com:${GITHUB_USER_NAME}/nekokan.git",
+    "sample_app/base64",
+    "executable"
+);

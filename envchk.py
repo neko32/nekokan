@@ -32,7 +32,8 @@ def env_var_chk(runtime_only:bool) -> bool:
         "NEKOKAN_ADMIN_USER": "Admin user of nekokan",
         "NEKOKAN_ADMIN_GROUP": "Admin group of nekokan",
         "PYTHON_PIP_BIN": "pip command name",
-        "LANGSMITH_API_KEY": "Langsmith API key"
+        "LANGSMITH_API_KEY": "Langsmith API key",
+        "GITHUB_USER_NAME": "github user name",
     }
     if runtime_only:
         del required_env_vars["TANULIB_CPP_CODE_DIR"]
