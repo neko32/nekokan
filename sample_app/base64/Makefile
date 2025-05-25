@@ -16,7 +16,7 @@ LFLAGS = -lpqxx -lpq -lcpprest -lpthread -lssl -lcrypto -lcppunit
 
 # lib/app name
 BIN_TYPE = exe
-NEKOKAN_PACKAGE_NAME := base64_sample
+NEKOKAN_PACKAGE_NAME := base64_sample_app
 BIN_NAME := base64_sample_bin
 
 # define nekokan header dir
