@@ -186,6 +186,7 @@ if [ -e ~/.nekokan_include.bash ]; then
   export ANTHROPIC_API_KEY=tobeset
   export LANGSMITH_API_KEY=tobeset
   export SERP_API_KEY=tobeset
+  export TAVILY_API_KEY=tobeset
   export GITHUB_USER_NAME=tobeset
 fi
     )";

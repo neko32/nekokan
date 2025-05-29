@@ -34,7 +34,8 @@ def env_var_chk(runtime_only:bool) -> bool:
         "PYTHON_PIP_BIN": "pip command name",
         "LANGSMITH_API_KEY": "Langsmith API key",
         "GITHUB_USER_NAME": "github user name",
-        "SERP_API_KEY": "Serp API Key"
+        "SERP_API_KEY": "Serp API Key",
+        "TAVILY_API_KEY": "Tabily API Key"
     }
     if runtime_only:
         del required_env_vars["TANULIB_CPP_CODE_DIR"]
