@@ -188,6 +188,7 @@ if [ -e ~/.nekokan_include.bash ]; then
   export SERP_API_KEY=tobeset
   export TAVILY_API_KEY=tobeset
   export GITHUB_USER_NAME=tobeset
+  export LOCAL_EMBEDDING_MODEL_DIR=tobeset
 fi
     )";
     cout << "copy the below to your .bashrc or equiv:" << endl;
