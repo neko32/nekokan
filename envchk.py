@@ -37,6 +37,7 @@ def env_var_chk(runtime_only:bool) -> bool:
         "GITHUB_USER_NAME": "github user name",
         "SERP_API_KEY": "Serp API Key",
         "TAVILY_API_KEY": "Tabily API Key",
+        "COHERE_API_KEY": "Cohere API Key"
     }
     if runtime_only:
         del required_env_vars["TANULIB_CPP_CODE_DIR"]
