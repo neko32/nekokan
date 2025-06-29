@@ -148,6 +148,7 @@ int main(int argc, char **argv) {
     ss << "alias stopollama=\"stopollama.bash\"" << endl;
     ss << "alias runnekomcphost=\"runnekomcphost.bash\"" << endl;
     ss << "alias cloneprojgit=\"clone_proj_from_git.bash\"" << endl;
+    ss << "alias addmodel=\"addmodel.bash\"" << endl;
     cout << ss.str() << endl;
 
     // write the result to ~/.nekokan_include.bash
