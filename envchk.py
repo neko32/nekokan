@@ -105,8 +105,8 @@ def proj_and_nekokan_lib_path_chk() -> bool:
 def compiler_existance_check() -> bool:
     print("checking g++ compiler existance and its version..")
     try:
-        check_output(["which", "g++-13"])
-        print("found g++-13 or higher - GOOD")
+        check_output(["which", "clang++"])
+        print("found clang-17 or higher - GOOD")
         return True
     except:
         pass
