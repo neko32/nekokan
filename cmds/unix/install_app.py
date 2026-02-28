@@ -83,6 +83,7 @@ class Catalog:
         if slink_path.exists():
             slink_path.unlink()
         slink_path.symlink_to(install_path / asset_name)
+        os.chmod(install_path / asset_name, 0o755)
 
         print(f"Installed {app_name} srv to {install_path} as slink {slink_path}")
 
